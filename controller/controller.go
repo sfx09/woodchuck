@@ -67,6 +67,14 @@ func (c *Controller) HandleGetUser(w http.ResponseWriter, r *http.Request, user 
 	respondWithJSON(w, http.StatusOK, user)
 }
 
+func (c *Controller) HandleGetFeeds(w http.ResponseWriter, r *http.Request) {
+	feeds, err := c.DB.GetAllFeeds(r.Context())
+	if err != nil {
+		respondWithErr(w, http.StatusInternalServerError, "Unable to fetch feeds from database")
+		return
+	}
+	respondWithJSON(w, http.StatusOK, feeds)
+}
 func (c *Controller) HandleCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	type Request struct {
 		Name string `json:"name"`

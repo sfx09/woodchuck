@@ -31,6 +31,7 @@ func main() {
 	mux.HandleFunc("POST /v1/users", c.HandleCreateUser)
 	mux.HandleFunc("GET /v1/users", c.HandleAuthentication(c.HandleGetUser))
 	mux.HandleFunc("POST /v1/feeds", c.HandleAuthentication(c.HandleCreateFeed))
+	mux.HandleFunc("GET /v1/feeds", c.HandleGetFeeds)
 
 	log.Println("Listening on addr:", srv.Addr)
 	err = srv.ListenAndServe()
