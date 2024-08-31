@@ -100,6 +100,19 @@ func (c *Controller) HandleCreateFeed(w http.ResponseWriter, r *http.Request, us
 		respondWithErr(w, http.StatusInternalServerError, "Failed to create new feed")
 		return
 	}
+
+	_, err = c.DB.CreateFollow(r.Context(), database.CreateFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		UserID:    user.ID,
+		FeedID:    feed.ID,
+	})
+	if err != nil {
+		respondWithErr(w, http.StatusInternalServerError, "Failed to follow feed")
+		return
+	}
+
 	respondWithJSON(w, http.StatusCreated, feed)
 }
 
@@ -127,4 +140,13 @@ func (c *Controller) HandleFollowFeed(w http.ResponseWriter, r *http.Request, us
 		return
 	}
 	respondWithJSON(w, http.StatusCreated, follow)
+}
+
+func (c *Controller) HandleGetFollows(w http.ResponseWriter, r *http.Request, user database.User) {
+	follows, err := c.DB.GetFollows(r.Context(), user.ID)
+	if err != nil {
+		respondWithErr(w, http.StatusInternalServerError, "Failed to fetch follows")
+		return
+	}
+	respondWithJSON(w, http.StatusOK, follows)
 }
