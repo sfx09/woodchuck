@@ -150,3 +150,21 @@ func (c *Controller) HandleGetFollows(w http.ResponseWriter, r *http.Request, us
 	}
 	respondWithJSON(w, http.StatusOK, follows)
 }
+
+func (c *Controller) HandleDeleteFollow(w http.ResponseWriter, r *http.Request, user database.User) {
+	followId := r.PathValue("id")
+	if followId == "" {
+		respondWithErr(w, http.StatusBadRequest, "Invalid Follow ID")
+		return
+	}
+	// TODO: Validate Follow exists and belongs to user
+	_, err := c.DB.DeleteFollow(r.Context(), database.DeleteFollowParams{
+		ID:     uuid.MustParse(followId),
+		UserID: user.ID,
+	})
+	if err != nil {
+		respondWithErr(w, http.StatusInternalServerError, "Failed to delete follow")
+		return
+	}
+	respondWithJSON(w, http.StatusNoContent, struct{}{})
+}
