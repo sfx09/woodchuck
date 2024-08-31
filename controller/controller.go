@@ -50,8 +50,8 @@ func (c *Controller) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := c.DB.CreateUser(r.Context(), database.CreateUserParams{
 		ID:        uuid.New(),
-		CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
-		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
 		Name:      req.Name,
 	})
 
@@ -61,4 +61,35 @@ func (c *Controller) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusCreated, user)
+}
+
+func (c *Controller) HandleGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
+	respondWithJSON(w, http.StatusOK, user)
+}
+
+func (c *Controller) HandleCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+	type Request struct {
+		Name string `json:"name"`
+		Url  string `json:"url"`
+	}
+	defer r.Body.Close()
+	req := Request{}
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		respondWithErr(w, http.StatusBadRequest, "Unable to decode request JSON")
+		return
+	}
+	feed, err := c.DB.CreateUserFeed(r.Context(), database.CreateUserFeedParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		Name:      req.Name,
+		Url:       req.Url,
+		UserID:    user.ID,
+	})
+	if err != nil {
+		respondWithErr(w, http.StatusInternalServerError, "Failed to create new feed")
+		return
+	}
+	respondWithJSON(w, http.StatusCreated, feed)
 }
