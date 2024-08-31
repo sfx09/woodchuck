@@ -75,6 +75,7 @@ func (c *Controller) HandleGetFeeds(w http.ResponseWriter, r *http.Request) {
 	}
 	respondWithJSON(w, http.StatusOK, feeds)
 }
+
 func (c *Controller) HandleCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	type Request struct {
 		Name string `json:"name"`
@@ -100,4 +101,30 @@ func (c *Controller) HandleCreateFeed(w http.ResponseWriter, r *http.Request, us
 		return
 	}
 	respondWithJSON(w, http.StatusCreated, feed)
+}
+
+func (c *Controller) HandleFollowFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+	type Request struct {
+		FeedId string `json:"feed_id"`
+	}
+	defer r.Body.Close()
+	req := Request{}
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		respondWithErr(w, http.StatusBadRequest, "Unable to decode request JSON")
+		return
+	}
+	// TODO: Validate Feed exists
+	follow, err := c.DB.CreateFollow(r.Context(), database.CreateFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		UserID:    user.ID,
+		FeedID:    uuid.MustParse(req.FeedId),
+	})
+	if err != nil {
+		respondWithErr(w, http.StatusInternalServerError, "Failed to follow feed")
+		return
+	}
+	respondWithJSON(w, http.StatusCreated, follow)
 }
