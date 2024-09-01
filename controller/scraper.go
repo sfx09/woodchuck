@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/sfx09/woodchuck/internal/database"
 	"github.com/sfx09/woodchuck/internal/scraper"
 )
@@ -32,17 +33,33 @@ func (c *Controller) ScrapeFeeds() {
 	}
 	for _, feed := range feeds {
 		wg.Add(1)
-		go c.ScrapeNLog(&wg, feed)
+		go c.ScrapeNRecord(&wg, feed)
 	}
 	wg.Wait()
 }
 
-func (c *Controller) ScrapeNLog(wg *sync.WaitGroup, feed database.Feed) {
+func (c *Controller) ScrapeNRecord(wg *sync.WaitGroup, feed database.Feed) {
 	defer wg.Done()
-	_, err := scraper.ScrapeFeed(feed.Url)
+	rssFeeds, err := scraper.ScrapeFeed(feed.Url)
 	if err != nil {
 		log.Println("Unable to scrape url:", feed.Url)
 		return
+	}
+	for _, blog := range rssFeeds.Channel.Items {
+		_, err := c.DB.CreatePost(context.TODO(), database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now().UTC(),
+			UpdatedAt:   time.Now().UTC(),
+			Title:       sql.NullString{String: blog.Title, Valid: true},
+			Url:         sql.NullString{String: blog.Link, Valid: true},
+			Description: sql.NullString{String: blog.Description, Valid: true},
+			FeedID:      feed.ID,
+		})
+		if err != nil {
+			log.Println("Failed to store blog in database", blog.Title)
+			continue
+		}
+		log.Println("Recorded new post", blog.Title)
 	}
 	updatedFeed, err := c.DB.MarkFeedFetched(context.TODO(), database.MarkFeedFetchedParams{
 		ID:          feed.ID,
