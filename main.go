@@ -36,6 +36,7 @@ func main() {
 	mux.HandleFunc("GET /v1/feed_follows", c.HandleAuthentication(c.HandleGetFollows))
 	mux.HandleFunc("DELETE /v1/feed_follows/{id}", c.HandleAuthentication(c.HandleDeleteFollow))
 
+	go c.ScrapePeriodic()
 	log.Println("Listening on addr:", srv.Addr)
 	err = srv.ListenAndServe()
 	if err != nil {
