@@ -168,3 +168,12 @@ func (c *Controller) HandleDeleteFollow(w http.ResponseWriter, r *http.Request, 
 	}
 	respondWithJSON(w, http.StatusNoContent, struct{}{})
 }
+
+func (c *Controller) HandleGetPosts(w http.ResponseWriter, r *http.Request, user database.User) {
+	posts, err := c.DB.GetPostsByUser(r.Context(), user.ID)
+	if err != nil {
+		respondWithErr(w, http.StatusInternalServerError, "Failed to fetch posts")
+		return
+	}
+	respondWithJSON(w, http.StatusOK, posts)
+}

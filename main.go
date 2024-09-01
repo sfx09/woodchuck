@@ -34,6 +34,7 @@ func main() {
 	mux.HandleFunc("GET /v1/feeds", c.HandleGetFeeds)
 	mux.HandleFunc("POST /v1/feed_follows", c.HandleAuthentication(c.HandleFollowFeed))
 	mux.HandleFunc("GET /v1/feed_follows", c.HandleAuthentication(c.HandleGetFollows))
+	mux.HandleFunc("GET /v1/posts", c.HandleAuthentication(c.HandleGetPosts))
 	mux.HandleFunc("DELETE /v1/feed_follows/{id}", c.HandleAuthentication(c.HandleDeleteFollow))
 
 	go c.ScrapePeriodic()

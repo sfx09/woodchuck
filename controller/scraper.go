@@ -13,7 +13,7 @@ import (
 )
 
 func (c *Controller) ScrapePeriodic() {
-	ticker := time.NewTicker(60 * time.Second)
+	ticker := time.NewTicker(3000 * time.Second)
 	quit := make(chan bool)
 	for {
 		select {
